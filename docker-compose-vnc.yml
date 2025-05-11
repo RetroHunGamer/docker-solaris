@@ -1,0 +1,53 @@
+version: '2.1'
+
+networks:
+  default:
+
+services:
+  solaris:
+    stdin_open: true
+    tty: true
+    restart: on-failure:1
+    hostname: aux
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: qemu-sparc:latest
+    environment:
+      GRAPHICS: tcx
+      MACHINE_TYPE: SS-5
+      SMP: 1
+      BOOT: c
+      CD_IMAGE: /qemu/iso/solaris-2.6.iso
+      SOCKET_NET: listen=0.0.0.0:65534
+      VNC_HOST: :0
+      LANG: en_US.utf8
+      TZ: UTC
+      MAC: "de:ad:de:01:02:03"
+      MEM: 64M
+    ulimits:
+      nproc: 10240
+      nofile:
+        soft: 10240
+        hard: 10240
+    ports:
+      - '23:23'
+    networks:
+      default:
+    volumes:
+      - disk:/qemu/disk
+      - iso:/qemu/iso
+  novnc:
+    ports:
+      - 8580:6080
+    networks:
+      default:
+    environment:
+      - AUTOCONNECT=true
+      - VNC_PASSWORD=none
+      - VNC_SERVER=solaris:5900
+    image: bonigarcia/novnc:1.2.0  
+
+volumes:
+  disk:
+  iso:
